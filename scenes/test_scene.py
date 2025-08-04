@@ -93,6 +93,7 @@ class test_scene(base_scene):
                     self.layer_index = 2
 
             if event.key == pygame.K_s: # save
+                print("saved")
                 dictionary = {
                     "size": self.grid,
                     "floors": self.values_floor,
