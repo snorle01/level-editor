@@ -15,23 +15,23 @@ class test_scene(base_scene):
 
         self.grid = (10, 10)
         
-        self.squares_floors: List[square_model] = []
-        self.create_squares(self.squares_floors)
-        self.squares_walls: List[square_model] = []
-        self.create_squares(self.squares_walls)
-        self.squares_ceiling: List[square_model] = []
-        self.create_squares(self.squares_ceiling)
+        squares_floors: List[square_model] = []
+        self.create_squares(squares_floors)
+        squares_walls: List[square_model] = []
+        self.create_squares(squares_walls)
+        squares_ceiling: List[square_model] = []
+        self.create_squares(squares_ceiling)
 
-        self.values_floor: List[int] = []
-        self.create_values(self.values_floor)
-        self.values_walls: List[int] = []
-        self.create_values(self.values_walls)
-        self.values_ceiling: List[int] = []
-        self.create_values(self.values_ceiling)
+        values_floor: List[int] = []
+        self.create_values(values_floor)
+        values_walls: List[int] = []
+        self.create_values(values_walls)
+        values_ceiling: List[int] = []
+        self.create_values(values_ceiling)
         
         self.layer_index = 0
-        self.squares_layers = [self.squares_floors, self.squares_walls, self.squares_ceiling]
-        self.values_layers = [self.values_floor, self.values_walls, self.values_ceiling]
+        self.squares_layers = [squares_floors, squares_walls, squares_ceiling]
+        self.values_layers = [values_floor, values_walls, values_ceiling]
 
     def create_values(self, value_list: List[int]):
         for i in range(self.grid[0] * self.grid[1]):
@@ -70,16 +70,12 @@ class test_scene(base_scene):
                 y = (self.grid[1] - 1) - fliped_y
                 index = x + (y * self.grid[0])
 
-                square_layer = self.squares_layers[self.layer_index]
-                value_layer = self.values_layers[self.layer_index]
-                square = square_layer[index]
-
-                if value_layer[index] == 0:
-                    value_layer[index] = 1
-                    square.color = on_color
+                if self.values_layers[self.layer_index][index] == 0:
+                    self.values_layers[self.layer_index][index] = 1
+                    self.squares_layers[self.layer_index][index].color = on_color
                 else:
-                    value_layer[index] = 0
-                    square.color = off_color
+                    self.values_layers[self.layer_index][index] = 0
+                    self.squares_layers[self.layer_index][index].color = off_color
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP: # up
@@ -93,20 +89,24 @@ class test_scene(base_scene):
                     self.layer_index = 2
 
             if event.key == pygame.K_s: # save
-                print("saved")
                 dictionary = {
                     "size": self.grid,
-                    "floors": self.values_floor,
-                    "walls": self.values_walls,
-                    "ceiling": self.values_ceiling
+                    "floors": self.values_layers[0],
+                    "walls": self.values_layers[1],
+                    "ceiling": self.values_layers[2]
                 }
 
+                with open("level_data.json", "w") as f:
+                    json.dump(dictionary, f, indent=4)
+
+                # """ old code. unable to modify existing file
                 # Serializing json
                 json_object = json.dumps(dictionary, indent=4)
 
                 # Writing to sample.json
                 with open("level_data.json", "w") as outfile:
                     outfile.write(json_object)
+                # """
                 
             if event.key == pygame.K_l: # load
                 on_color = glm.vec3(0.0, 1.0, 0.0)
@@ -115,27 +115,16 @@ class test_scene(base_scene):
                 with open('level_data.json', 'r') as file:
                     data = json.load(file)
 
-                    self.values_floor = data["floors"]
-                    self.values_walls = data["walls"]
-                    self.values_ceiling = data["ceiling"]
+                    self.values_layers[0] = data["floors"]
+                    self.values_layers[1] = data["walls"]
+                    self.values_layers[2] = data["ceiling"]
 
-                    for index in range(self.grid[0] * self.grid[1]):
-                        if self.values_floor[index] == 0:
-                            self.squares_floors[index].color = off_color
-                        else:
-                            self.squares_floors[index].color = on_color
-
-                    for index in range(self.grid[0] * self.grid[1]):
-                        if self.values_walls[index] == 0:
-                            self.squares_walls[index].color = off_color
-                        else:
-                            self.squares_walls[index].color = on_color
-
-                    for index in range(self.grid[0] * self.grid[1]):
-                        if self.values_ceiling[index] == 0:
-                            self.squares_ceiling[index].color = off_color
-                        else:
-                            self.squares_ceiling[index].color = on_color
+                    for list_index in range(len(self.values_layers)):
+                        for index in range(self.grid[0] * self.grid[1]):
+                            if self.values_layers[list_index][index] == 0:
+                                self.squares_layers[list_index][index].color = off_color
+                            else:
+                                self.squares_layers[list_index][index].color = on_color
 
     def render(self):
         super().render()
